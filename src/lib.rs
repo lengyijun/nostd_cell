@@ -10,6 +10,14 @@ use core::{
     sync::atomic::{AtomicU8, Ordering},
 };
 
+// Why do we need `T: Send`?
+// Thread A creates a `OnceCell` and shares it with
+// scoped thread B, which fills the cell, which is
+// then destroyed by A. That is, destructor observes
+// a sent value.
+unsafe impl<T: Sync + Send> Sync for OnceCell<T> {}
+unsafe impl<T: Send> Send for OnceCell<T> {}
+
 // Three states that a OnceCell can be in, encoded into the lower bits of `state` in
 // the OnceCell structure.
 const INCOMPLETE: u8 = 0x0;
